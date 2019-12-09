@@ -112,6 +112,8 @@ export function activate(context: vscode.ExtensionContext) {
                     },
                     json: true
                 });
+
+                vscode.window.showInformationMessage("The project has been succesfully updated");
             } catch (e) {
                 const match = /(.*?) at line (\d+):(\d+)/.exec(e.error.error);
 
