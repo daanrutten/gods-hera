@@ -96,7 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
             const sourceFiles = await vscode.workspace.findFiles("**/*.scl");
 
             // Aggregate files
-            const content = (await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()))).join("\n");
+            const sources = await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()));
 
             try {
                 // Send content to server
@@ -108,11 +108,25 @@ export function activate(context: vscode.ExtensionContext) {
                     },
                     body: {
                         projectId: config.projectId,
-                        content
+                        content: sources.join("\n")
                     },
                     json: true
                 });
             } catch (e) {
+                const match = /(.*?) at line (\d+):(\d+)/.exec(e.error.error);
+
+                if (match) {
+                    let line = parseInt(match[2], 10) - 1;
+                    const index = parseInt(match[3], 10) - 1;
+
+                    let i = 0;
+                    for (; line >= sources[i].length; i++) {
+                        line -= sources[i].length;
+                    }
+
+                    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
+                }
+
                 vscode.window.showErrorMessage(e.error.error);
             }
         }
