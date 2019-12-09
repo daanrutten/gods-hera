@@ -1,0 +1,34 @@
+{
+	"name": "gods-hermes",
+	"displayName": "gods-hermes",
+	"description": "Extension to exchange files with Zeus",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.40.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:extension.helloWorld"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.helloWorld",
+				"title": "Hello World"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run build",
+		"build": "tsc"
+	},
+	"devDependencies": {
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.40.0",
+		"typescript": "^3.6.4",
+		"tslint": "^5.20.0"
+	}
+}
