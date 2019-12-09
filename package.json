@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"onCommand:extension.updateProject"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
+				"command": "extension.updateProject",
+				"title": "Update project"
 			}
 		]
 	},
@@ -27,8 +27,14 @@
 	},
 	"devDependencies": {
 		"@types/node": "^12.11.7",
+		"@types/request-promise-native": "^1.0.17",
 		"@types/vscode": "^1.40.0",
-		"typescript": "^3.6.4",
-		"tslint": "^5.20.0"
+		"tslint": "^5.20.0",
+		"typescript": "^3.6.4"
+	},
+	"dependencies": {
+		"firebase": "^7.5.2",
+		"request": "^2.88.0",
+		"request-promise-native": "^1.0.8"
 	}
 }
