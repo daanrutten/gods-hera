@@ -2,6 +2,7 @@ import crypto from "crypto";
 import firebase from "firebase/app";
 import "firebase/auth";
 import fs from "fs";
+import parse5, { DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "parse5";
 import request from "request-promise-native";
 import vscode from "vscode";
 
@@ -20,6 +21,18 @@ function md5Hash(path: string) {
 
         file.pipe(hash);
     });
+}
+
+function htmlToOPL(element: DTE, indent = ""): string {
+    let str = `${indent}("${element.nodeName}"${element.attrs.map(attr => `, ${attr.name}="${attr.value}"`).join("")}`;
+
+    if (element.childNodes.length === 1 && element.childNodes[0].nodeName === "#text") {
+        str += `, html="${(element.childNodes[0] as any).value}"`;
+    } else if (element.childNodes.length > 0) {
+        str += `, children=[\n${element.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE, indent + " ".repeat(3))).join("\n")}\n${indent}]`;
+    }
+
+    return str + ")";
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -132,5 +145,26 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(e.error.error);
             }
         }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("extension.compileHtml", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const selection = editor && editor.selection;
+
+        if (!editor || !selection) {
+            vscode.window.showErrorMessage("Please select a snippet of HTML to compile");
+            return;
+        }
+
+        // Retrieve text from editor
+        const text = editor.document.getText(selection);
+
+        // Parse HTML
+        const document = parse5.parse(text) as DTD;
+        const body = (document.childNodes[0] as DTE).childNodes[1] as DTE;
+
+        // Convert HTML to OPL
+        const str = body.childNodes.map(child => htmlToOPL(child as DTE)).join("\n");
+        editor.edit(editBuilder => editBuilder.replace(selection, str));
     }));
 }
