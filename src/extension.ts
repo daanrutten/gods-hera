@@ -6,6 +6,27 @@ import parse5, { DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "p
 import request from "request-promise-native";
 import vscode from "vscode";
 
+async function getConfig(): Promise<[any, any]> {
+    const userJsonFile = await vscode.workspace.findFiles("**/user.json", "", 1);
+    const configFile = await vscode.workspace.findFiles("**/config.json", "", 1);
+
+    if (userJsonFile.length === 0) {
+        // Request the user to obtain a user file
+        await vscode.window.showErrorMessage("Please obtain and add your user.json file in your workspace");
+        await vscode.env.openExternal(vscode.Uri.parse("https://iris.gamesolutionslab.com/login?saveAsFile=1"));
+    } else if (configFile.length === 0) {
+        // Request the user to obtain a config file
+        await vscode.window.showErrorMessage("Please add a config.json file in your workspace");
+    } else {
+        const userJson = JSON.parse((await vscode.workspace.fs.readFile(userJsonFile[0])).toString());
+        const config = JSON.parse((await vscode.workspace.fs.readFile(configFile[0])).toString());
+
+        return [userJson, config];
+    }
+
+    return [undefined, undefined];
+}
+
 function md5Hash(path: string) {
     return new Promise((resolve, reject) => {
         const file = fs.createReadStream(path);
@@ -37,121 +58,184 @@ function htmlToOPL(element: DTE, indent = ""): string {
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("extension.updateProject", async () => {
-        const userJsonFile = await vscode.workspace.findFiles("**/user.json", "", 1);
-        const configFile = await vscode.workspace.findFiles("**/config.json", "", 1);
+        const [userJson, config] = await getConfig();
 
-        if (userJsonFile.length === 0) {
-            // Request the user to obtain a user file
-            await vscode.window.showErrorMessage("Please obtain and add your user.json file in your workspace");
-            await vscode.env.openExternal(vscode.Uri.parse("https://iris.gamesolutionslab.com/login?saveAsFile=1"));
-        } else if (configFile.length === 0) {
-            // Request the user to obtain a config file
-            await vscode.window.showErrorMessage("Please add a config.json file in your workspace");
-        } else {
-            const userJson = JSON.parse((await vscode.workspace.fs.readFile(userJsonFile[0])).toString());
-            const config = JSON.parse((await vscode.workspace.fs.readFile(configFile[0])).toString());
+        if (!userJson || !config) {
+            return;
+        }
 
-            // Log in
-            const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
-            const idToken = await user.getIdToken();
+        // Log in
+        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const idToken = await user.getIdToken();
 
-            // Search assets
-            const assets = await vscode.workspace.findFiles("assets/**");
+        // Search assets
+        const assets = await vscode.workspace.findFiles("assets/**");
 
-            await Promise.all(assets.map(async asset => {
-                const key = asset.path.slice(asset.path.lastIndexOf("/") + 1);
+        await Promise.all(assets.map(async asset => {
+            const key = asset.path.slice(asset.path.lastIndexOf("/") + 1);
 
-                const localHash = await md5Hash(asset.fsPath);
-                let serverHash = "";
-
-                try {
-                    // Retrieve hash from server
-                    serverHash = await request({
-                        method: "POST",
-                        uri: config.backendUrl + "/designer/checksum",
-                        headers: {
-                            Authorization: "Bearer " + idToken
-                        },
-                        body: {
-                            projectId: config.projectId,
-                            key
-                        },
-                        json: true
-                    });
-                    // tslint:disable-next-line: no-empty
-                } catch (e) { }
-
-                if (serverHash !== localHash) {
-                    try {
-                        // Send content to server
-                        await request({
-                            method: "POST",
-                            uri: config.backendUrl + "/designer/updateContent",
-                            qs: {
-                                projectId: config.projectId,
-                                key
-                            },
-                            headers: {
-                                Authorization: "Bearer " + idToken
-                            },
-                            formData: {
-                                file: fs.createReadStream(asset.fsPath)
-                            },
-                            json: true
-                        });
-                    } catch (e) {
-                        vscode.window.showErrorMessage(e.error.error);
-                    }
-                }
-            }));
-
-            // Search source files
-            const sourceFiles = await vscode.workspace.findFiles("**/*.scl");
-
-            // Aggregate files
-            const sources = await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()));
+            const localHash = await md5Hash(asset.fsPath);
+            let serverHash = "";
 
             try {
-                // Send content to server
-                await request({
+                // Retrieve hash from server
+                serverHash = await request({
                     method: "POST",
-                    uri: config.backendUrl + "/editor/updateProject",
+                    uri: config.backendUrl + "/designer/checksum",
                     headers: {
                         Authorization: "Bearer " + idToken
                     },
                     body: {
                         projectId: config.projectId,
-                        content: sources.join("\n")
+                        key
+                    },
+                    json: true
+                });
+                // tslint:disable-next-line: no-empty
+            } catch (e) { }
+
+            if (serverHash !== localHash) {
+                try {
+                    // Send content to server
+                    await request({
+                        method: "POST",
+                        uri: config.backendUrl + "/designer/updateProject",
+                        qs: {
+                            projectId: config.projectId,
+                            key
+                        },
+                        headers: {
+                            Authorization: "Bearer " + idToken
+                        },
+                        formData: {
+                            file: fs.createReadStream(asset.fsPath)
+                        },
+                        json: true
+                    });
+                } catch (e) {
+                    vscode.window.showErrorMessage(e.error.error);
+                }
+            }
+        }));
+
+        // Search source files
+        const sourceFiles = await vscode.workspace.findFiles("**/*.scl");
+
+        // Aggregate files
+        const sources = await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()));
+
+        try {
+            // Send content to server
+            await request({
+                method: "POST",
+                uri: config.backendUrl + "/editor/updateProject",
+                headers: {
+                    Authorization: "Bearer " + idToken
+                },
+                body: {
+                    projectId: config.projectId,
+                    content: sources.join("\n")
+                },
+                json: true
+            });
+
+            vscode.window.showInformationMessage("The project has been succesfully updated");
+        } catch (e) {
+            const match = /at line (\d+):(\d+)/.exec(e.error.error);
+
+            if (match) {
+                let line = parseInt(match[1], 10) - 1;
+                const index = parseInt(match[2], 10) - 1;
+
+                let i = 0;
+                for (; line >= sources[i].length; i++) {
+                    line -= sources[i].length;
+                }
+
+                await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
+            }
+
+            vscode.window.showErrorMessage(e.error.error);
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("extension.updateRoles", async () => {
+        const [userJson, config] = await getConfig();
+        const rolesFile = await vscode.workspace.findFiles("**/roles.json", "", 1);
+
+        if (!userJson || !config) {
+            return;
+        } else if (rolesFile.length === 0) {
+            // Request the user to add a roles file
+            await vscode.window.showErrorMessage("Please add a roles.json file in your workspace");
+        } else {
+            const roles = JSON.parse((await vscode.workspace.fs.readFile(rolesFile[0])).toString());
+
+            // Log in
+            const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+            const idToken = await user.getIdToken();
+
+            try {
+                // Send content to server
+                await request({
+                    method: "POST",
+                    uri: config.backendUrl + "/admin/updateProject",
+                    headers: {
+                        Authorization: "Bearer " + idToken
+                    },
+                    body: {
+                        projectId: config.projectId,
+                        roles
                     },
                     json: true
                 });
 
-                vscode.window.showInformationMessage("The project has been succesfully updated");
+                vscode.window.showInformationMessage("The roles have been succesfully updated");
             } catch (e) {
-                const match = /at line (\d+):(\d+)/.exec(e.error.error);
-
-                if (match) {
-                    let line = parseInt(match[1], 10) - 1;
-                    const index = parseInt(match[2], 10) - 1;
-
-                    let i = 0;
-                    for (; line >= sources[i].length; i++) {
-                        line -= sources[i].length;
-                    }
-
-                    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
-                }
-
                 vscode.window.showErrorMessage(e.error.error);
             }
         }
     }));
 
-    context.subscriptions.push(vscode.commands.registerCommand("extension.compileHtml", async () => {
+    context.subscriptions.push(vscode.commands.registerCommand("extension.createProject", async () => {
+        const [userJson, config] = await getConfig();
+
+        if (!userJson || !config) {
+            return;
+        }
+
+        // Log in
+        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const idToken = await user.getIdToken();
+
+        try {
+            // Send content to server
+            config.projectId = await request({
+                method: "POST",
+                uri: config.backendUrl + "/superadmin/createProject",
+                headers: {
+                    Authorization: "Bearer " + idToken
+                },
+                body: {
+                    name: await vscode.window.showInputBox({ placeHolder: "Name of project" })
+                },
+                json: true
+            });
+
+            const uri = vscode.Uri.file(vscode.workspace.workspaceFolders[0].uri.fsPath + "/config.json");
+            vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(config)));
+
+            vscode.window.showInformationMessage("The project has been succesfully created. Your config file has been updated");
+        } catch (e) {
+            vscode.window.showErrorMessage(e.error.error);
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand("extension.compileHtml", async () => {
         const editor = vscode.window.activeTextEditor;
         const selection = editor && editor.selection;
 
-        if (!editor || !selection) {
+        if (!editor || selection.isEmpty) {
             vscode.window.showErrorMessage("Please select a snippet of HTML to compile");
             return;
         }

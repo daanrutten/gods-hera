@@ -11,6 +11,8 @@
 	],
 	"activationEvents": [
 		"onCommand:extension.updateProject",
+		"onCommand:extension.updateRoles",
+		"onCommand:extension.createProject",
 		"onCommand:extension.compileHtml"
 	],
 	"main": "./dist/extension.js",
@@ -19,6 +21,14 @@
 			{
 				"command": "extension.updateProject",
 				"title": "Update project"
+			},
+			{
+				"command": "extension.updateRoles",
+				"title": "Update roles"
+			},
+			{
+				"command": "extension.createProject",
+				"title": "Create project"
 			},
 			{
 				"command": "extension.compileHtml",
