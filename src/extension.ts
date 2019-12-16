@@ -128,11 +128,11 @@ export function activate(context: vscode.ExtensionContext) {
 
                 vscode.window.showInformationMessage("The project has been succesfully updated");
             } catch (e) {
-                const match = /(.*?) at line (\d+):(\d+)/.exec(e.error.error);
+                const match = /at line (\d+):(\d+)/.exec(e.error.error);
 
                 if (match) {
-                    let line = parseInt(match[2], 10) - 1;
-                    const index = parseInt(match[3], 10) - 1;
+                    let line = parseInt(match[1], 10) - 1;
+                    const index = parseInt(match[2], 10) - 1;
 
                     let i = 0;
                     for (; line >= sources[i].length; i++) {
@@ -164,7 +164,7 @@ export function activate(context: vscode.ExtensionContext) {
         const body = (document.childNodes[0] as DTE).childNodes[1] as DTE;
 
         // Convert HTML to OPL
-        const str = body.childNodes.map(child => htmlToOPL(child as DTE)).join("\n");
-        editor.edit(editBuilder => editBuilder.replace(selection, str));
+        const str = body.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE)).join("\n");
+        await editor.edit(editBuilder => editBuilder.replace(selection, str));
     }));
 }
