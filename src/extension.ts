@@ -119,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
         }));
 
         // Search source files
-        const sourceFiles = await vscode.workspace.findFiles("**/*.scl");
+        const sourceFiles = await vscode.workspace.findFiles("**/*.opl");
 
         // Aggregate files
         const sources = await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()));
