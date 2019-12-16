@@ -1,7 +1,7 @@
-.vscode/**
-src/**
+.vscode/
+node_modules/
+src/
 .gitignore
-**/tsconfig.json
-**/tslint.json
-**/*.map
-**/*.ts
+tsconfig.json
+tslint.json
+webpack.config.js
