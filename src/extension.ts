@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (userJsonFile.length === 0) {
             // Request the user to obtain a user file
             await vscode.window.showErrorMessage("Please obtain and add your user.json file in your workspace");
-            await vscode.env.openExternal(vscode.Uri.parse("https://apollo.gamesolutionslab.com/login?saveAsFile=1"));
+            await vscode.env.openExternal(vscode.Uri.parse("https://iris.gamesolutionslab.com/login?saveAsFile=1"));
         } else if (configFile.length === 0) {
             // Request the user to obtain a config file
             await vscode.window.showErrorMessage("Please add a config.json file in your workspace");
