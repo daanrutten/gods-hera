@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import css from "css";
 import firebase from "firebase/app";
 import "firebase/auth";
 import fs from "fs";
@@ -54,6 +55,29 @@ function htmlToOPL(element: DTE, indent = ""): string {
     }
 
     return str + ")";
+}
+
+function jsonToOPL(element: any): string {
+    switch (typeof element) {
+        case "object":
+            return `(${Object.entries(element).map(entry => `${entry[0]} = ${jsonToOPL(entry[1])}`).join(", ")})`;
+
+        case "string":
+            return `"${element}"`;
+
+        case "number":
+            return element.toString(10);
+
+        case "boolean":
+            return element ? "1" : "0";
+
+        case "undefined":
+            return "NULL";
+    }
+}
+
+function cssToOPL(rule: css.Rule): string {
+    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t${decl.property} = "${decl.value}"`).join(",")}\n)`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -249,6 +273,46 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Convert HTML to OPL
         const str = body.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE)).join("\n");
+        await editor.edit(editBuilder => editBuilder.replace(selection, str));
+    }));
+
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand("extension.compileJson", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const selection = editor && editor.selection;
+
+        if (!editor || selection.isEmpty) {
+            vscode.window.showErrorMessage("Please select a snippet of JSON to compile");
+            return;
+        }
+
+        // Retrieve text from editor
+        const text = editor.document.getText(selection);
+
+        // Parse JSON
+        const document = JSON.parse(text);
+
+        // Convert JSON to OPL
+        const str = jsonToOPL(document);
+        await editor.edit(editBuilder => editBuilder.replace(selection, str));
+    }));
+
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand("extension.compileCss", async () => {
+        const editor = vscode.window.activeTextEditor;
+        const selection = editor && editor.selection;
+
+        if (!editor || selection.isEmpty) {
+            vscode.window.showErrorMessage("Please select a snippet of CSS to compile");
+            return;
+        }
+
+        // Retrieve text from editor
+        const text = editor.document.getText(selection);
+
+        // Parse CSS
+        const document = css.parse(text);
+
+        // Convert CSS to OPL
+        const str = "(" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",\n") + ")";
         await editor.edit(editBuilder => editBuilder.replace(selection, str));
     }));
 }

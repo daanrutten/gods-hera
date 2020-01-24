@@ -8,6 +8,8 @@
 		"vscode": "^1.40.0"
 	},
 	"categories": [
+		"Programming Languages",
+		"Extension Packs",
 		"Other"
 	],
 	"repository": {
@@ -18,7 +20,9 @@
 		"onCommand:extension.updateProject",
 		"onCommand:extension.updateRoles",
 		"onCommand:extension.createProject",
-		"onCommand:extension.compileHtml"
+		"onCommand:extension.compileHtml",
+		"onCommand:extension.compileJson",
+		"onCommand:extension.compileCss"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -38,13 +42,33 @@
 			{
 				"command": "extension.compileHtml",
 				"title": "Compile HTML"
+			},
+			{
+				"command": "extension.compileJson",
+				"title": "Compile JSON"
+			},
+			{
+				"command": "extension.compileCss",
+				"title": "Compile CSS"
 			}
-		]
+		],
+		"languages": [{
+            "id": "opl",
+            "aliases": ["OPL", "opl"],
+            "extensions": [".opl"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "opl",
+            "scopeName": "source.opl",
+            "path": "./src/opl.tmLanguage"
+        }]
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production"
 	},
 	"devDependencies": {
+		"@types/css": "0.0.31",
 		"@types/node": "^12.11.7",
 		"@types/parse5": "^5.0.2",
 		"@types/request-promise-native": "^1.0.17",
@@ -56,6 +80,7 @@
 		"webpack-cli": "^3.3.10"
 	},
 	"dependencies": {
+		"css": "^2.2.4",
 		"firebase": "^7.5.2",
 		"parse5": "^5.1.1",
 		"request": "^2.88.0",

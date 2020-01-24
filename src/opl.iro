@@ -1,0 +1,158 @@
+name                   = opl
+file_extensions []     = opl;
+
+styles [] {
+
+.comment : style {
+   textmate_scope = comment.line.number-sign
+   color = "green" ;
+}
+
+.keyword : style {
+   textmate_scope = keyword.control
+   color = "blue" ;
+}
+
+.keyword.constant : style {
+   textmate_scope = constant.language
+   color = "light_blue" ;
+}
+
+.variable : style {
+   textmate_scope = variable.other
+   color = "yellow" ;
+}
+
+.date : style {
+   textmate_scope = constant.character
+   color = "purple" ;
+}
+
+.string : style {
+   textmate_scope = string.quoted
+   color = "pink" ;
+}
+
+.number : style {
+   textmate_scope = constant.numeric
+   color = "purple" ;
+}
+
+.punctuation : style {
+   textmate_scope = punctuation
+}
+
+.illegal : style {
+   textmate_scope = invalid.illegal
+   color = "red" ;
+}
+
+}
+
+contexts [] {
+
+main : context {
+   : include "comment" ;
+   : pattern {
+      regex    \= (PUBLIC|BLOCK)
+      styles [] = .keyword;
+   }
+   : pattern {
+      regex    \= ([_a-zA-Z0-9]+)
+      styles [] = .variable;
+   }
+   : inline_push {
+      regex    \= ({)
+      styles [] = .punctuation;
+      : pop {
+         regex    \= (})
+         styles [] = .punctuation;
+      }
+      : include "statement" ;
+   }
+   : include "illegal" ;
+}
+
+statement : context {
+   : include "comment" ;
+   : pattern {
+      regex    \= (IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)
+      styles [] = .keyword;
+   }
+   : inline_push {
+      regex    \= ({)
+      styles [] = .punctuation;
+      : pop {
+         regex    \= (})
+         styles [] = .punctuation;
+      }
+      : include "statement" ;
+   }
+   : include "expression" ;
+}
+
+expression : context {
+   : pattern {
+      regex    \= (MAP|WHERE|AND|OR)
+      styles [] = .keyword;
+   }
+   : pattern {
+      regex    \= (\?|:|==|!=|>=|>|<=|=|\+|-|\*|/|%|\.|,|;)
+      styles [] = .punctuation;
+   }
+   : pattern {
+      regex    \= (\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}Z)?)
+      styles [] = .date;
+   }
+   : pattern {
+      regex    \= ("(?:\\"|[^"])*"|'(?:\\'|[^'])*')
+      styles [] = .string;
+   }
+   : pattern {
+      regex    \= (\d+(?:\.\d*)?)
+      styles [] = .number;
+   }
+   : pattern {
+      regex    \= (KEY|VALUE|ARG|NULL|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|USERID|THREADID|PROJECTID|THIS)
+      styles [] = .keyword.constant;
+   }
+   : pattern {
+      regex    \= ([_a-zA-Z0-9]+)
+      styles [] = .variable;
+   }
+   : inline_push {
+      regex    \= (\()
+      styles [] = .punctuation;
+      : pop {
+         regex    \= (\))
+         styles [] = .punctuation;
+      }
+      : include "expression" ;
+   }
+   : inline_push {
+      regex    \= (\[)
+      styles [] = .punctuation;
+      : pop {
+         regex    \= (\])
+         styles [] = .punctuation;
+      }
+      : include "expression" ;
+   }
+   : include "illegal" ;
+}
+
+comment : context {
+   : pattern {
+      regex    \= (#.*)
+      styles [] = .comment;
+   }
+}
+
+illegal : context {
+   : pattern {
+      regex    \= ([^\s]+)
+      styles [] = .illegal;
+   }
+}
+   
+}
