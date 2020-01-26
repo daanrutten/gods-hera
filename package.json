@@ -17,7 +17,9 @@
 		"url": "https://github.com/daanrutten/gods-hera.git"
 	},
 	"activationEvents": [
-		"onCommand:extension.updateProject",
+		"onCommand:extension.updateSource",
+		"onCommand:extension.updateAssets",
+		"onCommand:extension.cleanAssets",
 		"onCommand:extension.updateRoles",
 		"onCommand:extension.createProject",
 		"onCommand:extension.compileHtml",
@@ -28,30 +30,87 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.updateProject",
-				"title": "Update project"
+				"command": "extension.updateSource",
+				"title": "Update source",
+				"category": "Hera"
+			},
+			{
+				"command": "extension.updateAssets",
+				"title": "Update assets",
+				"category": "Hera"
+			},
+			{
+				"command": "extension.cleanAssets",
+				"title": "Clean assets",
+				"category": "Hera"
 			},
 			{
 				"command": "extension.updateRoles",
-				"title": "Update roles"
+				"title": "Update roles",
+				"category": "Hera"
 			},
 			{
 				"command": "extension.createProject",
-				"title": "Create project"
+				"title": "Create project",
+				"category": "Hera"
 			},
 			{
 				"command": "extension.compileHtml",
-				"title": "Compile HTML"
+				"title": "Compile HTML",
+				"category": "Hera"
 			},
 			{
 				"command": "extension.compileJson",
-				"title": "Compile JSON"
+				"title": "Compile JSON",
+				"category": "Hera"
 			},
 			{
 				"command": "extension.compileCss",
-				"title": "Compile CSS"
+				"title": "Compile CSS",
+				"category": "Hera"
 			}
 		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "extension.updateSource",
+					"group": "Hera"
+				},
+				{
+					"command": "extension.updateAssets",
+					"group": "Hera"
+				},
+				{
+					"command": "extension.cleanAssets",
+					"group": "Hera"
+				},
+				{
+					"command": "extension.updateRoles",
+					"group": "Hera"
+				},
+				{
+					"command": "extension.createProject",
+					"group": "Hera"
+				}
+			],
+			"editor/context": [
+				{
+					"when": "resourceLangId == opl && editorHasSelection",
+					"command": "extension.compileHtml",
+					"group": "Hera"
+				},
+				{
+					"when": "resourceLangId == opl && editorHasSelection",
+					"command": "extension.compileJson",
+					"group": "Hera"
+				},
+				{
+					"when": "resourceLangId == opl && editorHasSelection",
+					"command": "extension.compileCss",
+					"group": "Hera"
+				}
+			]
+		},
 		"languages": [{
             "id": "opl",
             "aliases": ["OPL", "opl"],

@@ -51,7 +51,7 @@ function htmlToOPL(element: DTE, indent = ""): string {
     if (element.childNodes.length === 1 && element.childNodes[0].nodeName === "#text") {
         str += `, html="${(element.childNodes[0] as any).value}"`;
     } else if (element.childNodes.length > 0) {
-        str += `, children=[\n${element.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE, indent + " ".repeat(3))).join("\n")}\n${indent}]`;
+        str += `, children=(\n${element.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE, indent + " ".repeat(3)) + ",").join("\n")}\n${indent})`;
     }
 
     return str + ")";
@@ -60,7 +60,7 @@ function htmlToOPL(element: DTE, indent = ""): string {
 function jsonToOPL(element: any): string {
     switch (typeof element) {
         case "object":
-            return `(${Object.entries(element).map(entry => `${entry[0]} = ${jsonToOPL(entry[1])}`).join(", ")})`;
+            return `(${Object.entries(element).map(entry => `${entry[0]} = ${jsonToOPL(entry[1])},`).join(" ")})`;
 
         case "string":
             return `"${element}"`;
@@ -77,11 +77,11 @@ function jsonToOPL(element: any): string {
 }
 
 function cssToOPL(rule: css.Rule): string {
-    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t${decl.property} = "${decl.value}"`).join(",")}\n)`;
+    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t${decl.property} = "${decl.value}",`).join(" ")}\n)`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    context.subscriptions.push(vscode.commands.registerCommand("extension.updateProject", async () => {
+    context.subscriptions.push(vscode.commands.registerCommand("extension.updateSource", async () => {
         const [userJson, config] = await getConfig();
 
         if (!userJson || !config) {
@@ -91,56 +91,6 @@ export function activate(context: vscode.ExtensionContext) {
         // Log in
         const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
         const idToken = await user.getIdToken();
-
-        // Search assets
-        const assets = await vscode.workspace.findFiles("assets/**");
-
-        await Promise.all(assets.map(async asset => {
-            const key = asset.path.slice(asset.path.lastIndexOf("/") + 1);
-
-            const localHash = await md5Hash(asset.fsPath);
-            let serverHash = "";
-
-            try {
-                // Retrieve hash from server
-                serverHash = await request({
-                    method: "POST",
-                    uri: config.backendUrl + "/designer/checksum",
-                    headers: {
-                        Authorization: "Bearer " + idToken
-                    },
-                    body: {
-                        projectId: config.projectId,
-                        key
-                    },
-                    json: true
-                });
-                // tslint:disable-next-line: no-empty
-            } catch (e) { }
-
-            if (serverHash !== localHash) {
-                try {
-                    // Send content to server
-                    await request({
-                        method: "POST",
-                        uri: config.backendUrl + "/designer/updateProject",
-                        qs: {
-                            projectId: config.projectId,
-                            key
-                        },
-                        headers: {
-                            Authorization: "Bearer " + idToken
-                        },
-                        formData: {
-                            file: fs.createReadStream(asset.fsPath)
-                        },
-                        json: true
-                    });
-                } catch (e) {
-                    vscode.window.showErrorMessage(e.error.error);
-                }
-            }
-        }));
 
         // Search source files
         const sourceFiles = await vscode.workspace.findFiles("**/*.opl");
@@ -179,6 +129,101 @@ export function activate(context: vscode.ExtensionContext) {
                 await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
             }
 
+            vscode.window.showErrorMessage(e.error.error);
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("extension.updateAssets", async () => {
+        const [userJson, config] = await getConfig();
+
+        if (!userJson || !config) {
+            return;
+        }
+
+        // Log in
+        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const idToken = await user.getIdToken();
+
+        // Search assets
+        const assets = await vscode.workspace.findFiles("assets/**");
+
+        try {
+            await Promise.all(assets.map(async asset => {
+                const key = asset.path.slice(asset.path.lastIndexOf("/") + 1);
+
+                const localHash = await md5Hash(asset.fsPath);
+                let serverHash = "";
+
+                try {
+                    // Retrieve hash from server
+                    serverHash = await request({
+                        method: "POST",
+                        uri: config.backendUrl + "/designer/checksum",
+                        headers: {
+                            Authorization: "Bearer " + idToken
+                        },
+                        body: {
+                            projectId: config.projectId,
+                            key
+                        },
+                        json: true
+                    });
+                    // tslint:disable-next-line: no-empty
+                } catch (e) { }
+
+                if (serverHash !== localHash) {
+                    // Send content to server
+                    await request({
+                        method: "POST",
+                        uri: config.backendUrl + "/designer/updateProject",
+                        qs: {
+                            projectId: config.projectId,
+                            key
+                        },
+                        headers: {
+                            Authorization: "Bearer " + idToken
+                        },
+                        formData: {
+                            file: fs.createReadStream(asset.fsPath)
+                        },
+                        json: true
+                    });
+                }
+            }));
+
+            vscode.window.showInformationMessage("The assets have been succesfully updated");
+        } catch (e) {
+            vscode.window.showErrorMessage(e.error.error);
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("extension.cleanAssets", async () => {
+        const [userJson, config] = await getConfig();
+
+        if (!userJson || !config) {
+            return;
+        }
+
+        // Log in
+        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const idToken = await user.getIdToken();
+
+        try {
+            // Retrieve hash from server
+            await request({
+                method: "POST",
+                uri: config.backendUrl + "/designer/cleanProject",
+                headers: {
+                    Authorization: "Bearer " + idToken
+                },
+                body: {
+                    projectId: config.projectId
+                },
+                json: true
+            });
+
+            vscode.window.showInformationMessage("The assets have been succesfully cleaned");
+        } catch (e) {
             vscode.window.showErrorMessage(e.error.error);
         }
     }));
