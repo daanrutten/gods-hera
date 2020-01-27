@@ -5,7 +5,7 @@ import "firebase/auth";
 import fs from "fs";
 import parse5, { DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "parse5";
 import request from "request-promise-native";
-import vscode from "vscode";
+import vscode, { Uri } from "vscode";
 
 async function getConfig(): Promise<[any, any]> {
     const userJsonFile = await vscode.workspace.findFiles("**/user.json", "", 1);
@@ -60,7 +60,7 @@ function htmlToOPL(element: DTE, indent = ""): string {
 function jsonToOPL(element: any): string {
     switch (typeof element) {
         case "object":
-            return `(${Object.entries(element).map(entry => `${entry[0]} = ${jsonToOPL(entry[1])},`).join(" ")})`;
+            return `(${Object.entries(element).map(entry => `"${entry[0]}" = ${jsonToOPL(entry[1])},`).join(" ")})`;
 
         case "string":
             return `"${element}"`;
@@ -77,7 +77,7 @@ function jsonToOPL(element: any): string {
 }
 
 function cssToOPL(rule: css.Rule): string {
-    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t${decl.property} = "${decl.value}",`).join(" ")}\n)`;
+    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}" = "${decl.value}",`).join(" ")}\n)`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -96,7 +96,42 @@ export function activate(context: vscode.ExtensionContext) {
         const sourceFiles = await vscode.workspace.findFiles("**/*.opl");
 
         // Aggregate files
-        const sources = await Promise.all(sourceFiles.map(async file => (await vscode.workspace.fs.readFile(file)).toString()));
+        const sources = await Promise.all(sourceFiles.map(async file => {
+            let source = (await vscode.workspace.fs.readFile(file)).toString();
+            let match: RegExpExecArray;
+
+            for (const regex = /import\s*\("(.*?)"\)/gi; match = regex.exec(source);) {
+                const path = Uri.file(file.path.slice(0, file.path.lastIndexOf("/") + 1) + match[1]);
+                let text = (await vscode.workspace.fs.readFile(path)).toString();
+
+                if (match[1].endsWith(".html")) {
+                    // Parse HTML
+                    const document = parse5.parse(text) as DTD;
+                    const body = (document.childNodes[0] as DTE).childNodes[1] as DTE;
+
+                    // Convert HTML to OPL
+                    text = body.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE)).join("");
+                } else if (match[1].endsWith(".json")) {
+                    // Parse JSON
+                    const document = JSON.parse(text);
+
+                    // Convert JSON to OPL
+                    text = jsonToOPL(document);
+                } else if (match[1].endsWith(".css")) {
+                    // Parse CSS
+                    const document = css.parse(text);
+
+                    // Convert CSS to OPL
+                    text = "(" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",") + ")";
+                } else {
+                    throw new Error("Expected HTML, JSON or CSS file in import statement");
+                }
+
+                source = source.slice(0, match.index) + text.replace(/\n/g, "") + source.slice(match.index + match[0].length);
+            }
+
+            return source;
+        }));
 
         try {
             // Send content to server
@@ -113,7 +148,7 @@ export function activate(context: vscode.ExtensionContext) {
                 json: true
             });
 
-            vscode.window.showInformationMessage("The project has been succesfully updated");
+            vscode.window.showInformationMessage("The source has been succesfully updated");
         } catch (e) {
             const match = /at line (\d+):(\d+)/.exec(e.error.error);
 
@@ -122,14 +157,21 @@ export function activate(context: vscode.ExtensionContext) {
                 const index = parseInt(match[2], 10) - 1;
 
                 let i = 0;
-                for (; line >= sources[i].length; i++) {
-                    line -= sources[i].length;
+                for (; true; i++) {
+                    const lineCount = (sources[i].match(/\n/g) || []).length + 1;
+
+                    if (line >= lineCount) {
+                        line -= lineCount;
+                    } else {
+                        break;
+                    }
                 }
 
                 await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
+                vscode.window.showErrorMessage(e.error.error.slice(0, match.index) + `at line ${line + 1}:${index + 1}`);
+            } else {
+                vscode.window.showErrorMessage(e.error.error);
             }
-
-            vscode.window.showErrorMessage(e.error.error);
         }
     }));
 
