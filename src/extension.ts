@@ -46,21 +46,21 @@ function md5Hash(path: string) {
 }
 
 function htmlToOPL(element: DTE, indent = ""): string {
-    let str = `${indent}("${element.nodeName}"${element.attrs.map(attr => `, ${attr.name}="${attr.value}"`).join("")}`;
+    let str = `${indent}{"${element.nodeName}"${element.attrs.map(attr => `, ${attr.name}="${attr.value}"`).join("")}`;
 
     if (element.childNodes.length === 1 && element.childNodes[0].nodeName === "#text") {
         str += `, html="${(element.childNodes[0] as any).value}"`;
     } else if (element.childNodes.length > 0) {
-        str += `, children=(\n${element.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE, indent + " ".repeat(3)) + ",").join("\n")}\n${indent})`;
+        str += `, children={\n${element.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE, indent + "\t")).join(",\n")}\n${indent}}`;
     }
 
-    return str + ")";
+    return str + "}";
 }
 
 function jsonToOPL(element: any): string {
     switch (typeof element) {
         case "object":
-            return `(${Object.entries(element).map(entry => `"${entry[0]}" = ${jsonToOPL(entry[1])},`).join(" ")})`;
+            return `{${Object.entries(element).map(entry => `"${entry[0]}" = ${jsonToOPL(entry[1])}`).join(", ")}}`;
 
         case "string":
             return `"${element}"`;
@@ -77,7 +77,7 @@ function jsonToOPL(element: any): string {
 }
 
 function cssToOPL(rule: css.Rule): string {
-    return `"${rule.selectors.join(", ")}" = (${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}" = "${decl.value}",`).join(" ")}\n)`;
+    return `"${rule.selectors.join(", ")}" = {${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}" = "${decl.value}"`).join(", ")}\n}`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -122,7 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
                     const document = css.parse(text);
 
                     // Convert CSS to OPL
-                    text = "(" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",") + ")";
+                    text = "{" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",") + "}";
                 } else {
                     throw new Error("Expected HTML, JSON or CSS file in import statement");
                 }
@@ -320,6 +320,8 @@ export function activate(context: vscode.ExtensionContext) {
         const idToken = await user.getIdToken();
 
         try {
+            config.name = await vscode.window.showInputBox({ placeHolder: "Name of project" });
+
             // Send content to server
             config.projectId = await request({
                 method: "POST",
@@ -328,7 +330,7 @@ export function activate(context: vscode.ExtensionContext) {
                     Authorization: "Bearer " + idToken
                 },
                 body: {
-                    name: await vscode.window.showInputBox({ placeHolder: "Name of project" })
+                    name: config.name
                 },
                 json: true
             });
@@ -399,7 +401,7 @@ export function activate(context: vscode.ExtensionContext) {
         const document = css.parse(text);
 
         // Convert CSS to OPL
-        const str = "(" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",\n") + ")";
+        const str = "{" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",\n") + "}";
         await editor.edit(editBuilder => editBuilder.replace(selection, str));
     }));
 }

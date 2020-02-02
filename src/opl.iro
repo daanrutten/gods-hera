@@ -68,36 +68,23 @@ main : context {
          regex    \= (})
          styles [] = .punctuation;
       }
-      : include "statement" ;
+      : include "expression" ;
    }
    : include "illegal" ;
 }
 
-statement : context {
+expression : context {
    : include "comment" ;
    : pattern {
       regex    \= (IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)
       styles [] = .keyword;
    }
-   : inline_push {
-      regex    \= ({)
-      styles [] = .punctuation;
-      : pop {
-         regex    \= (})
-         styles [] = .punctuation;
-      }
-      : include "statement" ;
-   }
-   : include "expression" ;
-}
-
-expression : context {
    : pattern {
       regex    \= (MAP|WHERE|AND|OR)
       styles [] = .keyword;
    }
    : pattern {
-      regex    \= (\?|:|==|!=|>=|>|<=|=|\+|-|\*|/|%|\.|,|;)
+      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|=|\+|-|\*|/|%|\.|,|;)
       styles [] = .punctuation;
    }
    : pattern {
@@ -134,6 +121,15 @@ expression : context {
       styles [] = .punctuation;
       : pop {
          regex    \= (\])
+         styles [] = .punctuation;
+      }
+      : include "expression" ;
+   }
+   : inline_push {
+      regex    \= ({)
+      styles [] = .punctuation;
+      : pop {
+         regex    \= (})
          styles [] = .punctuation;
       }
       : include "expression" ;

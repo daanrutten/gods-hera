@@ -94,6 +94,16 @@
       <key>patterns</key>
       <array> 
         <dict>
+          <key>include</key>
+          <string>#comment</string>
+        </dict>
+        <dict>
+          <key>match</key>
+          <string>(IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)</string>
+          <key>name</key>
+          <string>keyword.control.opl</string>
+        </dict>
+        <dict>
           <key>match</key>
           <string>(MAP|WHERE|AND|OR)</string>
           <key>name</key>
@@ -101,7 +111,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\?|:|==|!=|&gt;=|&gt;|&lt;=|=|\+|-|\*|/|%|\.|,|;)</string>
+          <string>(\?|:|&amp;&amp;|\|\||==|!=|&gt;=|&gt;|&lt;=|=|\+|-|\*|/|%|\.|,|;)</string>
           <key>name</key>
           <string>punctuation.opl</string>
         </dict>
@@ -194,6 +204,35 @@
           </dict>
         </dict>
         <dict>
+          <key>begin</key>
+          <string>({)</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.opl</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array> 
+            <dict>
+              <key>include</key>
+              <string>#expression__3</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>(})</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.opl</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
           <key>include</key>
           <string>#illegal</string>
         </dict>
@@ -210,6 +249,16 @@
        </array>
     </dict>
     <key>expression__2</key>
+    <dict>
+      <key>patterns</key>
+      <array> 
+        <dict>
+          <key>include</key>
+          <string>#expression</string>
+        </dict>
+       </array>
+    </dict>
+    <key>expression__3</key>
     <dict>
       <key>patterns</key>
       <array> 
@@ -237,66 +286,7 @@
       <array> 
         <dict>
           <key>include</key>
-          <string>#statement</string>
-        </dict>
-       </array>
-    </dict>
-    <key>statement</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>include</key>
-          <string>#comment</string>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>(IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)</string>
-          <key>name</key>
-          <string>keyword.control.opl</string>
-        </dict>
-        <dict>
-          <key>begin</key>
-          <string>({)</string>
-          <key>beginCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.opl</string>
-            </dict>
-          </dict>
-          <key>patterns</key>
-          <array> 
-            <dict>
-              <key>include</key>
-              <string>#statement__1</string>
-            </dict>
-           </array>
-          <key>end</key>
-          <string>(})</string>
-          <key>endCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.opl</string>
-            </dict>
-          </dict>
-        </dict>
-        <dict>
-          <key>include</key>
           <string>#expression</string>
-        </dict>
-       </array>
-    </dict>
-    <key>statement__1</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>include</key>
-          <string>#statement</string>
         </dict>
        </array>
     </dict>
