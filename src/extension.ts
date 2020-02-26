@@ -76,8 +76,22 @@ function jsonToOPL(element: any): string {
     }
 }
 
-function cssToOPL(rule: css.Rule): string {
+function cssToOPL(css: css.Rule | css.KeyFrames): string {
+    switch (css.type) {
+        case "rule":
+            return ruleToOpl(css as css.Rule);
+
+        case "keyframes":
+            return keyframesToOpl(css as css.KeyFrames);
+    }
+}
+
+function ruleToOpl(rule: { selectors?: string[], declarations?: css.Declaration[] }): string {
     return `"${rule.selectors.join(", ")}" = {${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}" = "${decl.value}"`).join(", ")}\n}`;
+}
+
+function keyframesToOpl(anim: css.KeyFrames) {
+    return `"@keyframes ${anim.name}" = {${anim.keyframes.map((fr: css.KeyFrame) => `\n${ruleToOpl({selectors: fr.values, declarations: fr.declarations})}`).join(",")}\n}`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
