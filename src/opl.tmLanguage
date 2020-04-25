@@ -32,7 +32,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(PUBLIC|BLOCK)</string>
+          <string>(BLOCK|THREAD)</string>
           <key>name</key>
           <string>keyword.control.opl</string>
         </dict>
@@ -99,7 +99,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)</string>
+          <string>(IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)</string>
           <key>name</key>
           <string>keyword.control.opl</string>
         </dict>
@@ -111,7 +111,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\?|:|&amp;&amp;|\|\||==|!=|&gt;=|&gt;|&lt;=|=|\+|-|\*|/|%|\.|,|;)</string>
+          <string>(\?|:|&amp;&amp;|\|\||==|!=|&gt;=|&gt;|&lt;=|=|\+|-|\*|/|%|!|\.|,|;)</string>
           <key>name</key>
           <string>punctuation.opl</string>
         </dict>
@@ -135,7 +135,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(KEY|VALUE|ARG|NULL|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|USERID|THREADID|PROJECTID|THIS)</string>
+          <string>(NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|THREADID|PROJECTID|THIS|ARG)</string>
           <key>name</key>
           <string>constant.language.opl</string>
         </dict>

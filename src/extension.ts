@@ -7,14 +7,14 @@ import parse5, { DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "p
 import request from "request-promise-native";
 import vscode, { Uri } from "vscode";
 
-async function getConfig(): Promise<[any, any]> {
+async function getConfig(): Promise<[any, any, vscode.Uri]> {
     const userJsonFile = await vscode.workspace.findFiles("**/user.json", "", 1);
     const configFile = await vscode.workspace.findFiles("**/config.json", "", 1);
 
     if (userJsonFile.length === 0) {
         // Request the user to obtain a user file
         await vscode.window.showErrorMessage("Please obtain and add your user.json file in your workspace");
-        await vscode.env.openExternal(vscode.Uri.parse("https://iris.gamesolutionslab.com/login?saveAsFile=1"));
+        await vscode.env.openExternal(vscode.Uri.parse("https://iris.gamesolutionslab.com/login"));
     } else if (configFile.length === 0) {
         // Request the user to obtain a config file
         await vscode.window.showErrorMessage("Please add a config.json file in your workspace");
@@ -22,10 +22,10 @@ async function getConfig(): Promise<[any, any]> {
         const userJson = JSON.parse((await vscode.workspace.fs.readFile(userJsonFile[0])).toString());
         const config = JSON.parse((await vscode.workspace.fs.readFile(configFile[0])).toString());
 
-        return [userJson, config];
+        return [userJson, config, userJsonFile[0]];
     }
 
-    return [undefined, undefined];
+    return [undefined, undefined, undefined];
 }
 
 function md5Hash(path: string) {
@@ -91,20 +91,21 @@ function ruleToOpl(rule: { selectors?: string[], declarations?: css.Declaration[
 }
 
 function keyframesToOpl(anim: css.KeyFrames) {
-    return `"@keyframes ${anim.name}" = {${anim.keyframes.map((fr: css.KeyFrame) => `\n${ruleToOpl({selectors: fr.values, declarations: fr.declarations})}`).join(",")}\n}`;
+    return `"@keyframes ${anim.name}" = {${anim.keyframes.map((fr: css.KeyFrame) => `\n${ruleToOpl({ selectors: fr.values, declarations: fr.declarations })}`).join(",")}\n}`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("extension.updateSource", async () => {
-        const [userJson, config] = await getConfig();
+        const [userJson, config, userJsonFile] = await getConfig();
 
         if (!userJson || !config) {
             return;
         }
 
         // Log in
-        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const user: firebase.User = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
         const idToken = await user.getIdToken();
+        vscode.workspace.fs.writeFile(userJsonFile, Buffer.from(JSON.stringify(user)));
 
         // Search source files
         const sourceFiles = await vscode.workspace.findFiles("**/*.opl");
@@ -151,7 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
             // Send content to server
             await request({
                 method: "POST",
-                uri: config.backendUrl + "/editor/updateProject",
+                uri: config.backendUrl + "/auth/editor/updateProject",
                 headers: {
                     Authorization: "Bearer " + idToken
                 },
@@ -190,15 +191,16 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("extension.updateAssets", async () => {
-        const [userJson, config] = await getConfig();
+        const [userJson, config, userJsonFile] = await getConfig();
 
         if (!userJson || !config) {
             return;
         }
 
         // Log in
-        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const user: firebase.User = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
         const idToken = await user.getIdToken();
+        vscode.workspace.fs.writeFile(userJsonFile, Buffer.from(JSON.stringify(user)));
 
         // Search assets
         const assets = await vscode.workspace.findFiles("assets/**");
@@ -214,7 +216,7 @@ export function activate(context: vscode.ExtensionContext) {
                     // Retrieve hash from server
                     serverHash = await request({
                         method: "POST",
-                        uri: config.backendUrl + "/designer/checksum",
+                        uri: config.backendUrl + "/auth/designer/checksum",
                         headers: {
                             Authorization: "Bearer " + idToken
                         },
@@ -231,7 +233,7 @@ export function activate(context: vscode.ExtensionContext) {
                     // Send content to server
                     await request({
                         method: "POST",
-                        uri: config.backendUrl + "/designer/updateProject",
+                        uri: config.backendUrl + "/auth/designer/updateProject",
                         qs: {
                             projectId: config.projectId,
                             key
@@ -254,21 +256,22 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("extension.cleanAssets", async () => {
-        const [userJson, config] = await getConfig();
+        const [userJson, config, userJsonFile] = await getConfig();
 
         if (!userJson || !config) {
             return;
         }
 
         // Log in
-        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const user: firebase.User = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
         const idToken = await user.getIdToken();
+        vscode.workspace.fs.writeFile(userJsonFile, Buffer.from(JSON.stringify(user)));
 
         try {
             // Retrieve hash from server
             await request({
                 method: "POST",
-                uri: config.backendUrl + "/designer/cleanProject",
+                uri: config.backendUrl + "/auth/designer/cleanProject",
                 headers: {
                     Authorization: "Bearer " + idToken
                 },
@@ -285,7 +288,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("extension.updateRoles", async () => {
-        const [userJson, config] = await getConfig();
+        const [userJson, config, userJsonFile] = await getConfig();
         const rolesFile = await vscode.workspace.findFiles("**/roles.json", "", 1);
 
         if (!userJson || !config) {
@@ -297,14 +300,15 @@ export function activate(context: vscode.ExtensionContext) {
             const roles = JSON.parse((await vscode.workspace.fs.readFile(rolesFile[0])).toString());
 
             // Log in
-            const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+            const user: firebase.User = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
             const idToken = await user.getIdToken();
+            vscode.workspace.fs.writeFile(userJsonFile, Buffer.from(JSON.stringify(user)));
 
             try {
                 // Send content to server
                 await request({
                     method: "POST",
-                    uri: config.backendUrl + "/admin/updateProject",
+                    uri: config.backendUrl + "/auth/admin/updateProject",
                     headers: {
                         Authorization: "Bearer " + idToken
                     },
@@ -323,15 +327,16 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("extension.createProject", async () => {
-        const [userJson, config] = await getConfig();
+        const [userJson, config, userJsonFile] = await getConfig();
 
         if (!userJson || !config) {
             return;
         }
 
         // Log in
-        const user = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
+        const user: firebase.User = new (firebase as any).User(userJson, userJson.stsTokenManager, userJson);
         const idToken = await user.getIdToken();
+        vscode.workspace.fs.writeFile(userJsonFile, Buffer.from(JSON.stringify(user)));
 
         try {
             config.name = await vscode.window.showInputBox({ placeHolder: "Name of project" });
@@ -339,7 +344,7 @@ export function activate(context: vscode.ExtensionContext) {
             // Send content to server
             config.projectId = await request({
                 method: "POST",
-                uri: config.backendUrl + "/superadmin/createProject",
+                uri: config.backendUrl + "/auth/superadmin/createProject",
                 headers: {
                     Authorization: "Bearer " + idToken
                 },

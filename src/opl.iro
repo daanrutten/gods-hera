@@ -54,7 +54,7 @@ contexts [] {
 main : context {
    : include "comment" ;
    : pattern {
-      regex    \= (PUBLIC|BLOCK)
+      regex    \= (BLOCK|THREAD)
       styles [] = .keyword;
    }
    : pattern {
@@ -76,7 +76,7 @@ main : context {
 expression : context {
    : include "comment" ;
    : pattern {
-      regex    \= (IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|RETURN)
+      regex    \= (IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
       styles [] = .keyword;
    }
    : pattern {
@@ -84,7 +84,7 @@ expression : context {
       styles [] = .keyword;
    }
    : pattern {
-      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|=|\+|-|\*|/|%|\.|,|;)
+      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|=|\+|-|\*|/|%|!|\.|,|;)
       styles [] = .punctuation;
    }
    : pattern {
@@ -100,7 +100,7 @@ expression : context {
       styles [] = .number;
    }
    : pattern {
-      regex    \= (KEY|VALUE|ARG|NULL|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|USERID|THREADID|PROJECTID|THIS)
+      regex    \= (NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|THREADID|PROJECTID|THIS|ARG)
       styles [] = .keyword.constant;
    }
    : pattern {
