@@ -130,7 +130,7 @@ function cssToJSON(css: css.Rule | css.KeyFrames): string {
 }
 
 function ruleToJSON(rule: { selectors?: string[], declarations?: css.Declaration[] }): string {
-    return `'${rule.selectors.join(", ").replace(/\./g, "\\.")}': {${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}": "${decl.value}"`).join(", ")}\n}`;
+    return `"${rule.selectors.join(", ")}": {${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}": "${decl.value}"`).join(", ")}\n}`;
 }
 
 function keyframesToJSON(anim: css.KeyFrames) {
