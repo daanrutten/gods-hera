@@ -84,7 +84,7 @@ expression : context {
       styles [] = .keyword;
    }
    : pattern {
-      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|=|\+|-|\*|/|%|!|\.|,|;)
+      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|<|=|\+|-|\*|/|%|!|\.|,|;)
       styles [] = .punctuation;
    }
    : pattern {
@@ -100,7 +100,7 @@ expression : context {
       styles [] = .number;
    }
    : pattern {
-      regex    \= (NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|THREADID|PROJECTID|THIS|ARG)
+      regex    \= (NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|DEVICEID|PROJECTID|THIS|ARG)
       styles [] = .keyword.constant;
    }
    : pattern {

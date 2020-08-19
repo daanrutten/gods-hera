@@ -111,7 +111,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(\?|:|&amp;&amp;|\|\||==|!=|&gt;=|&gt;|&lt;=|=|\+|-|\*|/|%|!|\.|,|;)</string>
+          <string>(\?|:|&amp;&amp;|\|\||==|!=|&gt;=|&gt;|&lt;=|&lt;|=|\+|-|\*|/|%|!|\.|,|;)</string>
           <key>name</key>
           <string>punctuation.opl</string>
         </dict>
@@ -135,7 +135,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|THREADID|PROJECTID|THIS|ARG)</string>
+          <string>(NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|DEVICEID|PROJECTID|THIS|ARG)</string>
           <key>name</key>
           <string>constant.language.opl</string>
         </dict>

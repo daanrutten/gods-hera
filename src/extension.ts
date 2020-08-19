@@ -46,7 +46,7 @@ function md5Hash(path: string) {
 }
 
 function htmlToOPL(element: DTE, indent = ""): string {
-    let str = `${indent}{"${element.nodeName}"${element.attrs.map(attr => `, ${attr.name}="${attr.value}"`).join("")}`;
+    let str = `${indent}{"${element.nodeName}"${element.attrs.map(attr => `, '${attr.name}'='${attr.value}'`).join("")}`;
 
     if (element.childNodes.length === 1 && element.childNodes[0].nodeName === "#text") {
         str += `, html="${(element.childNodes[0] as any).value}"`;
@@ -57,10 +57,22 @@ function htmlToOPL(element: DTE, indent = ""): string {
     return str + "}";
 }
 
+function htmlToJSON(element: DTE, indent = ""): string {
+    let str = `${indent}{"0": "${element.nodeName}"${element.attrs.map(attr => `, "${attr.name}": "${attr.value}"`).join("")}`;
+
+    if (element.childNodes.length === 1 && element.childNodes[0].nodeName === "#text") {
+        str += `, "html": "${(element.childNodes[0] as any).value}"`;
+    } else if (element.childNodes.length > 0) {
+        str += `, "children": {\n${element.childNodes.filter(child => child.nodeName !== "#text").map((child, i) => `"${i}": ${htmlToJSON(child as DTE, indent + "\t")}`).join(",\n")}\n${indent}}`;
+    }
+
+    return str + "}";
+}
+
 function jsonToOPL(element: any): string {
     switch (typeof element) {
         case "object":
-            return `{${Object.entries(element).map(entry => `"${entry[0]}" = ${jsonToOPL(entry[1])}`).join(", ")}}`;
+            return element ? `{${Object.entries(element).map(entry => `"${entry[0]}" = ${jsonToOPL(entry[1])}`).join(", ")}}` : "NULL";
 
         case "string":
             return `"${element}"`;
@@ -70,9 +82,22 @@ function jsonToOPL(element: any): string {
 
         case "boolean":
             return element ? "1" : "0";
+    }
+}
 
-        case "undefined":
-            return "NULL";
+function jsonToJSON(element: any): string {
+    switch (typeof element) {
+        case "object":
+            return element ? `{${Object.entries(element).map(entry => `"${entry[0]}": ${jsonToJSON(entry[1])}`).join(", ")}}` : "null";
+
+        case "string":
+            return `"${element}"`;
+
+        case "number":
+            return element.toString(10);
+
+        case "boolean":
+            return element ? "1" : "0";
     }
 }
 
@@ -92,6 +117,24 @@ function ruleToOpl(rule: { selectors?: string[], declarations?: css.Declaration[
 
 function keyframesToOpl(anim: css.KeyFrames) {
     return `'@keyframes ${anim.name}' = {${anim.keyframes.map((fr: css.KeyFrame) => `\n${ruleToOpl({ selectors: fr.values, declarations: fr.declarations })}`).join(",")}\n}`;
+}
+
+function cssToJSON(css: css.Rule | css.KeyFrames): string {
+    switch (css.type) {
+        case "rule":
+            return ruleToJSON(css as css.Rule);
+
+        case "keyframes":
+            return keyframesToJSON(css as css.KeyFrames);
+    }
+}
+
+function ruleToJSON(rule: { selectors?: string[], declarations?: css.Declaration[] }): string {
+    return `'${rule.selectors.join(", ").replace(/\./g, "\\.")}': {${rule.declarations.map((decl: css.Declaration) => `\n\t"${decl.property}": "${decl.value}"`).join(", ")}\n}`;
+}
+
+function keyframesToJSON(anim: css.KeyFrames) {
+    return `"@keyframes ${anim.name}": {${anim.keyframes.map((fr: css.KeyFrame) => `\n${ruleToJSON({ selectors: fr.values, declarations: fr.declarations })}`).join(",")}\n}`;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -125,24 +168,24 @@ export function activate(context: vscode.ExtensionContext) {
                     const body = (document.childNodes[0] as DTE).childNodes[1] as DTE;
 
                     // Convert HTML to OPL
-                    text = body.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToOPL(child as DTE)).join("");
+                    text = body.childNodes.filter(child => child.nodeName !== "#text").map(child => htmlToJSON(child as DTE)).join("");
                 } else if (match[1].endsWith(".json")) {
                     // Parse JSON
                     const document = JSON.parse(text);
 
                     // Convert JSON to OPL
-                    text = jsonToOPL(document);
+                    text = jsonToJSON(document);
                 } else if (match[1].endsWith(".css")) {
                     // Parse CSS
                     const document = css.parse(text);
 
                     // Convert CSS to OPL
-                    text = "{" + document.stylesheet.rules.map(rule => cssToOPL(rule)).join(",") + "}";
+                    text = "{" + document.stylesheet.rules.map(rule => `${cssToJSON(rule)}`).join(",") + "}";
                 } else {
                     throw new Error("Expected HTML, JSON or CSS file in import statement");
                 }
 
-                source = source.slice(0, match.index) + text.replace(/\n/g, "") + source.slice(match.index + match[0].length);
+                source = `${source.slice(0, match.index)}PARSE(${JSON.stringify(text.replace(/\r?\n/g, ""))})${source.slice(match.index + match[0].length)}`;
             }
 
             return source;
