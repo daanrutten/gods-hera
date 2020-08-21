@@ -32,7 +32,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(BLOCK|THREAD)</string>
+          <string>(PUBLIC|BLOCK)</string>
           <key>name</key>
           <string>keyword.control.opl</string>
         </dict>
