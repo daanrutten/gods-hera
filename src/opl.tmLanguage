@@ -32,80 +32,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(PUBLIC|BLOCK)</string>
-          <key>name</key>
-          <string>keyword.control.opl</string>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>([_a-zA-Z0-9]+)</string>
-          <key>name</key>
-          <string>variable.other.opl</string>
-        </dict>
-        <dict>
-          <key>begin</key>
-          <string>({)</string>
-          <key>beginCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.opl</string>
-            </dict>
-          </dict>
-          <key>patterns</key>
-          <array> 
-            <dict>
-              <key>include</key>
-              <string>#main__1</string>
-            </dict>
-           </array>
-          <key>end</key>
-          <string>(})</string>
-          <key>endCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.opl</string>
-            </dict>
-          </dict>
-        </dict>
-        <dict>
-          <key>include</key>
-          <string>#illegal</string>
-        </dict>
-       </array>
-    </dict>
-    <key>comment</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>match</key>
-          <string>(#.*)</string>
-          <key>name</key>
-          <string>comment.line.number-sign.opl</string>
-        </dict>
-       </array>
-    </dict>
-    <key>expression</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>include</key>
-          <string>#comment</string>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>(IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)</string>
-          <key>name</key>
-          <string>keyword.control.opl</string>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>(MAP|WHERE|AND|OR)</string>
+          <string>(PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)</string>
           <key>name</key>
           <string>keyword.control.opl</string>
         </dict>
@@ -160,7 +87,7 @@
           <array> 
             <dict>
               <key>include</key>
-              <string>#expression__1</string>
+              <string>#main__1</string>
             </dict>
            </array>
           <key>end</key>
@@ -189,7 +116,7 @@
           <array> 
             <dict>
               <key>include</key>
-              <string>#expression__2</string>
+              <string>#main__2</string>
             </dict>
            </array>
           <key>end</key>
@@ -218,7 +145,7 @@
           <array> 
             <dict>
               <key>include</key>
-              <string>#expression__3</string>
+              <string>#main__3</string>
             </dict>
            </array>
           <key>end</key>
@@ -238,33 +165,15 @@
         </dict>
        </array>
     </dict>
-    <key>expression__1</key>
+    <key>comment</key>
     <dict>
       <key>patterns</key>
       <array> 
         <dict>
-          <key>include</key>
-          <string>#expression</string>
-        </dict>
-       </array>
-    </dict>
-    <key>expression__2</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>include</key>
-          <string>#expression</string>
-        </dict>
-       </array>
-    </dict>
-    <key>expression__3</key>
-    <dict>
-      <key>patterns</key>
-      <array> 
-        <dict>
-          <key>include</key>
-          <string>#expression</string>
+          <key>match</key>
+          <string>(#.*)</string>
+          <key>name</key>
+          <string>comment.line.number-sign.opl</string>
         </dict>
        </array>
     </dict>
@@ -286,7 +195,27 @@
       <array> 
         <dict>
           <key>include</key>
-          <string>#expression</string>
+          <string>#main</string>
+        </dict>
+       </array>
+    </dict>
+    <key>main__2</key>
+    <dict>
+      <key>patterns</key>
+      <array> 
+        <dict>
+          <key>include</key>
+          <string>#main</string>
+        </dict>
+       </array>
+    </dict>
+    <key>main__3</key>
+    <dict>
+      <key>patterns</key>
+      <array> 
+        <dict>
+          <key>include</key>
+          <string>#main</string>
         </dict>
        </array>
     </dict>

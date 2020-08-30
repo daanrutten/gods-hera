@@ -54,33 +54,7 @@ contexts [] {
 main : context {
    : include "comment" ;
    : pattern {
-      regex    \= (PUBLIC|BLOCK)
-      styles [] = .keyword;
-   }
-   : pattern {
-      regex    \= ([_a-zA-Z0-9]+)
-      styles [] = .variable;
-   }
-   : inline_push {
-      regex    \= ({)
-      styles [] = .punctuation;
-      : pop {
-         regex    \= (})
-         styles [] = .punctuation;
-      }
-      : include "expression" ;
-   }
-   : include "illegal" ;
-}
-
-expression : context {
-   : include "comment" ;
-   : pattern {
-      regex    \= (IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
-      styles [] = .keyword;
-   }
-   : pattern {
-      regex    \= (MAP|WHERE|AND|OR)
+      regex    \= (PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
       styles [] = .keyword;
    }
    : pattern {
@@ -114,7 +88,7 @@ expression : context {
          regex    \= (\))
          styles [] = .punctuation;
       }
-      : include "expression" ;
+      : include "main" ;
    }
    : inline_push {
       regex    \= (\[)
@@ -123,7 +97,7 @@ expression : context {
          regex    \= (\])
          styles [] = .punctuation;
       }
-      : include "expression" ;
+      : include "main" ;
    }
    : inline_push {
       regex    \= ({)
@@ -132,7 +106,7 @@ expression : context {
          regex    \= (})
          styles [] = .punctuation;
       }
-      : include "expression" ;
+      : include "main" ;
    }
    : include "illegal" ;
 }
