@@ -201,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
                 },
                 body: {
                     projectId: config.projectId,
-                    content: sources.join("\n")
+                    content: sources.reduce((map, source, i) => (map[sourceFiles[i].path] = source, map), {} as Record<string, string>)
                 },
                 json: true
             });
