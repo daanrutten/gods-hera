@@ -208,7 +208,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             vscode.window.showInformationMessage("The source has been succesfully updated");
         } catch (e) {
-            const match = /at line (\d+):(\d+) in file (\S+)/.exec(e.error.error);
+            const match = /at line (\d+):(\d+) in file (.+)/.exec(e.error.error);
 
             if (match) {
                 const line = parseInt(match[1], 10) - 1;
