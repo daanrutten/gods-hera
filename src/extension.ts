@@ -208,28 +208,17 @@ export function activate(context: vscode.ExtensionContext) {
 
             vscode.window.showInformationMessage("The source has been succesfully updated");
         } catch (e) {
-            const match = /at line (\d+):(\d+)/.exec(e.error.error);
+            const match = /at line (\d+):(\d+) in file (\S+)/.exec(e.error.error);
 
             if (match) {
-                let line = parseInt(match[1], 10) - 1;
+                const line = parseInt(match[1], 10) - 1;
                 const index = parseInt(match[2], 10) - 1;
+                const file = sourceFiles.find(file => file.path == match[3]);
 
-                let i = 0;
-                for (; true; i++) {
-                    const lineCount = (sources[i].match(/\n/g) || []).length + 1;
-
-                    if (line >= lineCount) {
-                        line -= lineCount;
-                    } else {
-                        break;
-                    }
-                }
-
-                await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(sourceFiles[i].fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
-                vscode.window.showErrorMessage(e.error.error.slice(0, match.index) + `at line ${line + 1}:${index + 1}`);
-            } else {
-                vscode.window.showErrorMessage(e.error.error);
+                await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(file.fsPath), { selection: new vscode.Range(line, index, line, index + 1) });
             }
+
+            vscode.window.showErrorMessage(e.error.error);
         }
     }));
 
