@@ -62,7 +62,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|PROJECTID|DEVICEID|THIS|ARG|TIMEZONE|IP|DEVICE|BROWSER|OS)</string>
+          <string>(NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|PROJECTID|DEVICEID|THIS|ARG|TIMEZONE|IP|DEVICE|BROWSER|OS|FORM|QUERY)</string>
           <key>name</key>
           <string>constant.language.opl</string>
         </dict>
