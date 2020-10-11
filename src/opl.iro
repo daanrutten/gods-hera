@@ -54,11 +54,11 @@ contexts [] {
 main : context {
    : include "comment" ;
    : pattern {
-      regex    \= (PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
+      regex    \= (PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|FOR|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
       styles [] = .keyword;
    }
    : pattern {
-      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|<|=|\+|-|\*|/|%|!|\.|,|;)
+      regex    \= (\?|:|&&|\|\||==|!=|>=|>|<=|<|=|\+=|-=|\*=|/=|%=|\+|-|\*|/|%|!|\.|,|;)
       styles [] = .punctuation;
    }
    : pattern {
@@ -74,7 +74,7 @@ main : context {
       styles [] = .number;
    }
    : pattern {
-      regex    \= (NULL|KEY|VALUE|ERROR|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|PROJECTID|DEVICEID|THIS|ARG|TIMEZONE|IP|DEVICE|BROWSER|OS|FORM|QUERY)
+      regex    \= (NULL|KEY|VALUE|ERROR|RANDOM|NOW|TODAY|DAYS|HOURS|MINUTES|SECONDS|ZEUS|IRIS|THREADID|PROJECTID|DEVICEID|TIMEZONE|IP|DEVICE|BROWSER|OS|FORM|QUERY|THIS|ARG)
       styles [] = .keyword.constant;
    }
    : pattern {
