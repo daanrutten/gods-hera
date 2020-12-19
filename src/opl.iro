@@ -54,7 +54,7 @@ contexts [] {
 main : context {
    : include "comment" ;
    : pattern {
-      regex    \= (PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|FOR|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
+      regex    \= (PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|DO|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)
       styles [] = .keyword;
    }
    : pattern {

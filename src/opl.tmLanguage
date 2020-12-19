@@ -32,7 +32,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|FOR|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)</string>
+          <string>(PUBLIC|BLOCK|AND|OR|IF|ELSEIF|ELSE|WHILE|FOREACH|DO|SWITCH|DEFAULT|TRY|CATCH|THROW|RETURN)</string>
           <key>name</key>
           <string>keyword.control.opl</string>
         </dict>
