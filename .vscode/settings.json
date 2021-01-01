@@ -6,5 +6,9 @@
     "tslint.ignoreDefinitionFiles": false,
     "tslint.exclude": [
         "**/node_modules/**/*"
-    ]
+    ],
+    "files.exclude": {
+        ".vscode": true,
+        "dist": true
+    }
 }

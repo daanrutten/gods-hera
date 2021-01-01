@@ -8,7 +8,6 @@
 		"vscode": "^1.40.0"
 	},
 	"categories": [
-		"Programming Languages",
 		"Extension Packs",
 		"Other"
 	],
@@ -22,9 +21,7 @@
 		"onCommand:extension.cleanAssets",
 		"onCommand:extension.updateRoles",
 		"onCommand:extension.createProject",
-		"onCommand:extension.compileHtml",
-		"onCommand:extension.compileJson",
-		"onCommand:extension.compileCss"
+		"onCommand:extension.compileHtml"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -58,16 +55,6 @@
 				"command": "extension.compileHtml",
 				"title": "Compile HTML",
 				"category": "Hera"
-			},
-			{
-				"command": "extension.compileJson",
-				"title": "Compile JSON",
-				"category": "Hera"
-			},
-			{
-				"command": "extension.compileCss",
-				"title": "Compile CSS",
-				"category": "Hera"
 			}
 		],
 		"menus": {
@@ -95,63 +82,35 @@
 			],
 			"editor/context": [
 				{
-					"when": "resourceLangId == opl && editorHasSelection",
+					"when": "resourceLangId == html && editorHasSelection",
 					"command": "extension.compileHtml",
-					"group": "Hera"
-				},
-				{
-					"when": "resourceLangId == opl && editorHasSelection",
-					"command": "extension.compileJson",
-					"group": "Hera"
-				},
-				{
-					"when": "resourceLangId == opl && editorHasSelection",
-					"command": "extension.compileCss",
 					"group": "Hera"
 				}
 			]
-		},
-		"languages": [
-			{
-				"id": "opl",
-				"aliases": [
-					"OPL",
-					"opl"
-				],
-				"extensions": [
-					".opl"
-				],
-				"configuration": "./language-configuration.json"
-			}
-		],
-		"grammars": [
-			{
-				"language": "opl",
-				"scopeName": "source.opl",
-				"path": "./src/opl.tmLanguage"
-			}
-		]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production"
 	},
-	"devDependencies": {
-		"@types/css": "0.0.31",
-		"@types/node": "^14.11.8",
-		"@types/parse5": "^5.0.3",
-		"@types/request-promise-native": "^1.0.17",
-		"@types/vscode": "^1.40.0",
-		"ts-loader": "^8.0.4",
-		"tslint": "^6.1.3",
-		"typescript": "^4.0.3",
-		"webpack": "^5.0.0",
-		"webpack-cli": "^4.0.0"
-	},
 	"dependencies": {
-		"css": "^3.0.0",
-		"firebase": "^7.23.0",
+		"axios": "^0.21.1",
+		"firebase": "^8.2.1",
+		"form-data": "^3.0.0",
+		"less": "^4.0.0",
 		"parse5": "^6.0.1",
-		"request": "^2.88.2",
-		"request-promise-native": "^1.0.9"
+		"strip-json-comments": "^3.1.1",
+		"typescript": "^4.1.3"
+	},
+	"devDependencies": {
+		"@types/less": "^3.0.2",
+		"@types/node": "^14.14.17",
+		"@types/parse5": "^5.0.3",
+		"@types/vscode": "^1.40.0",
+		"@typescript-eslint/eslint-plugin": "^4.11.1",
+		"@typescript-eslint/parser": "^4.11.1",
+		"eslint": "^7.16.0",
+		"ts-loader": "^8.0.4",
+		"webpack": "^5.11.1",
+		"webpack-cli": "^4.3.1"
 	}
 }

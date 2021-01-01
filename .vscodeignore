@@ -1,6 +1,7 @@
 .vscode/
 node_modules/
+.eslintignore
+.eslintrc.json
 .gitignore
 tsconfig.json
-tslint.json
 webpack.config.js
