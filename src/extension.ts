@@ -168,14 +168,14 @@ export function activate(context: vscode.ExtensionContext): void {
 
                 try {
                     // Retrieve hash from server
-                    serverHash = await axios.post(config.backendUrl + "/auth/designer/checksum", {
+                    serverHash = (await axios.post(config.backendUrl + "/auth/designer/checksum", {
                         projectId: config.projectId,
                         key
                     }, {
                         headers: {
                             Authorization: "Bearer " + idToken
                         },
-                    })
+                    })).data;
 
                     // eslint-disable-next-line no-empty
                 } catch (err) { }
@@ -298,13 +298,13 @@ export function activate(context: vscode.ExtensionContext): void {
             config.name = await vscode.window.showInputBox({ placeHolder: "Name of project" });
 
             // Send the name to server
-            config.projectId = await axios.post(config.backendUrl + "/auth/superadmin/createProject", {
+            config.projectId = (await axios.post(config.backendUrl + "/auth/superadmin/createProject", {
                 name: config.name
             }, {
                 headers: {
                     Authorization: "Bearer " + idToken
                 }
-            });
+            })).data;
 
             let uri = vscode.Uri.file(vscode.workspace.workspaceFolders[0].uri.fsPath + "/config.json");
             await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(config)));
