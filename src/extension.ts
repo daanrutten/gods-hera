@@ -18,7 +18,7 @@ interface Config {
 
 async function login(): Promise<[Config, string]> {
     // Search the user file
-    const userJsonFile = await vscode.workspace.findFiles("**/user.json", "", 1);
+    const userJsonFile = await vscode.workspace.findFiles("**/user.json", "**/node_modules/**", 1);
 
     if (userJsonFile.length === 0) {
         await vscode.window.showErrorMessage("Please obtain and add a user.json file in your workspace");
@@ -28,7 +28,7 @@ async function login(): Promise<[Config, string]> {
     }
 
     // Search the config file
-    let configFile = await vscode.workspace.findFiles("**/config.json", "", 1);
+    let configFile = await vscode.workspace.findFiles("**/config.json", "**/node_modules/**", 1);
 
     if (configFile.length === 0) {
         configFile = [vscode.Uri.file(vscode.workspace.workspaceFolders[0].uri.fsPath + "/config.json")];
@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         // Search the tsconfig file
-        const tsConfigFile = await vscode.workspace.findFiles("**/tsconfig.json", "", 1);
+        const tsConfigFile = await vscode.workspace.findFiles("**/tsconfig.json", "**/node_modules/**", 1);
 
         if (tsConfigFile.length === 0) {
             vscode.window.showErrorMessage("Please add a tsconfig.json file in your workspace");
@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const tsConfig = JSON.parse(stripJsonComments((await vscode.workspace.fs.readFile(tsConfigFile[0])).toString()));
 
         // Search the source files
-        const sourceFiles = await vscode.workspace.findFiles("**/*.ts");
+        const sourceFiles = await vscode.workspace.findFiles("**/*.ts", "**/node_modules/**");
 
         // Aggregate files
         const sources = await Promise.all(sourceFiles.map(async file =>
@@ -261,7 +261,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         // Search the roles json
-        const rolesFile = await vscode.workspace.findFiles("**/roles.json", "", 1);
+        const rolesFile = await vscode.workspace.findFiles("**/roles.json", "**/node_modules/**", 1);
 
         if (rolesFile.length === 0) {
             vscode.window.showErrorMessage("Please add a roles.json file in your workspace");
