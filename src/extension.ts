@@ -16,6 +16,8 @@ interface Config {
     backendUrl: string;
     projectId: string;
     name: string;
+    defaultStyle: string;
+    reportErrors: boolean;
 }
 
 async function login(): Promise<[Config, string]> {
@@ -130,8 +132,8 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             // Send the compiled source to server
             await axios.post(config.backendUrl + "/auth/editor/updateProject", {
-                projectId: config.projectId,
-                content
+                content,
+                config
             }, {
                 headers: {
                     Authorization: "Bearer " + idToken
@@ -299,6 +301,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
         try {
             config.name = await vscode.window.showInputBox({ placeHolder: "Name of project" });
+            config.defaultStyle = "";
+            config.reportErrors = false;
 
             // Send the name to server
             config.projectId = (await axios.post(config.backendUrl + "/auth/superadmin/createProject", {
