@@ -1,3 +1,4 @@
+import autoprefixer from "autoprefixer";
 import axios from "axios";
 import crypto from "crypto";
 import firebase from "firebase/app";
@@ -6,6 +7,7 @@ import FormData from "form-data";
 import fs from "fs";
 import less from "less";
 import parse5, { DefaultTreeTextNode, DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "parse5";
+import postcss from "postcss";
 import stripJsonComments from "strip-json-comments";
 import typescript from "typescript";
 import vscode from "vscode";
@@ -183,8 +185,9 @@ export function activate(context: vscode.ExtensionContext): void {
                 if (key.endsWith(".less")) {
                     const source = (await vscode.workspace.fs.readFile(asset)).toString();
                     const compiled = await less.render(source, { filename: key, compress: true });
+                    const result = await postcss([autoprefixer({ overrideBrowserslist: "> 1%, last 2 versions, not dead" })]).process(compiled.css, { from: asset.fsPath });
 
-                    const localHash = crypto.createHash('md5').update(compiled.css).digest("hex");
+                    const localHash = crypto.createHash('md5').update(result.css).digest("hex");
 
                     if (serverHash !== localHash) {
                         const formData = new FormData();
