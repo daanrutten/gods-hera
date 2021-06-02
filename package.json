@@ -2,7 +2,7 @@
 	"name": "gods-hera",
 	"displayName": "gods-hera",
 	"description": "Extension to exchange files with Zeus",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"publisher": "daanrutten",
 	"engines": {
 		"vscode": "^1.40.0"
