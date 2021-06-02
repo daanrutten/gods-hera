@@ -90,7 +90,8 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "webpack --mode production"
+		"vscode:prepublish": "npm run -S esbuild-base -- --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node"
 	},
 	"dependencies": {
 		"autoprefixer": "^10.2.6",
@@ -110,9 +111,7 @@
 		"@types/vscode": "^1.40.0",
 		"@typescript-eslint/eslint-plugin": "^4.11.1",
 		"@typescript-eslint/parser": "^4.11.1",
-		"eslint": "^7.16.0",
-		"ts-loader": "^8.3.0",
-		"webpack": "^5.38.1",
-		"webpack-cli": "^4.7.0"
+		"esbuild": "^0.12.5",
+		"eslint": "^7.16.0"
 	}
 }
