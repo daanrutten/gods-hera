@@ -1,5 +1,7 @@
 .vscode/
-node_modules/
+node_modules/*
+!node_modules/watchpack
+!node_modules/webpack
 .eslintignore
 .eslintrc.json
 .gitignore
