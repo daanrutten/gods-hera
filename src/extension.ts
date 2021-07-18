@@ -6,11 +6,13 @@ import "firebase/auth";
 import FormData from "form-data";
 import fs from "fs";
 import less from "less";
+import MemoryFs from "memory-fs";
 import parse5, { DefaultTreeTextNode, DefaultTreeDocument as DTD, DefaultTreeElement as DTE } from "parse5";
 import postcss from "postcss";
 import stripJsonComments from "strip-json-comments";
 import typescript from "typescript";
 import vscode from "vscode";
+import webpack from "webpack";
 
 interface Config {
     backendUrl: string;
@@ -129,10 +131,60 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         }
 
+        // Filter offline files
+        const offlineFiles: string[] = [];
+        const inputFs = new MemoryFs();
+
+        for (const filename in content) {
+            if (filename.startsWith("./components/")) {
+                offlineFiles.push(filename);
+                inputFs.mkdirpSync(filename.slice(1, filename.lastIndexOf("/")));
+                inputFs.writeFileSync(filename.slice(1) + ".js", content[filename]);
+
+                delete content[filename];
+            }
+        }
+
+        // Compile offline files
+        let offlineCode = "";
+
+        if (offlineFiles.length > 0) {
+            const compiler = webpack({
+                mode: "production",
+                entry: offlineFiles,
+                context: "/",
+                externals: {
+                    "gods": "_gods",
+                    "moment": "_moment",
+                    "vue": "_vue",
+                    "vue-property-decorator": "_vpd"
+                },
+                output: {
+                    filename: 'bundle.js',
+                    path: '/'
+                }
+            });
+
+            compiler.inputFileSystem = inputFs;
+            compiler.outputFileSystem = new MemoryFs();
+
+            await new Promise((resolve, reject) => compiler.run((err, stats) => {
+                if (err || stats.hasErrors()) {
+                    reject(err || stats.toString());
+                    return;
+                }
+
+                resolve(true);
+            }));
+
+            offlineCode = (compiler.outputFileSystem as MemoryFs).readFileSync("/bundle.js").toString();
+        }
+
         try {
             // Send the compiled source to server
             await axios.post(config.backendUrl + "/auth/editor/updateProject", {
                 content,
+                offlineCode,
                 config
             }, {
                 headers: {
