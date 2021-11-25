@@ -156,7 +156,6 @@ export function activate(context: vscode.ExtensionContext): void {
                 externals: {
                     "gods": "_gods",
                     "moment": "_moment",
-                    "vue": "_vue",
                     "vue-property-decorator": "_vpd"
                 },
                 output: {
